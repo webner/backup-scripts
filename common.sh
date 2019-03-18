@@ -1,6 +1,6 @@
 #!/bin/bash
 set -o nounset
-source "logger.sh"
+source "$(dirname $0)/logger.sh"
 
 BACKUP_NAMESPACE=${1-}
 BACKUP_LABEL_SELECTOR=${BACKUP_LABEL_SELECTOR-catalysts.cc/backup=true}

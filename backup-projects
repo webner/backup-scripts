@@ -2,6 +2,7 @@
 source "$(dirname $0)/common.sh"
 
 dir="$BACKUP_TARGET/projects"
+rm -fr "$dir"
 mkdir -p "$dir"
 cd $dir
 
