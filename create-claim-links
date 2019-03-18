@@ -1,0 +1,32 @@
+#!/bin/bash
+source "$(dirname $0)/common.sh"
+
+function main() {
+  local pvs_to_backup=$(get_pvs_to_backup)
+
+  IFS=$'\n'
+  for pv in $pvs_to_backup; do
+    IFS=$' '
+    create_symlink $pv
+  done
+}
+
+function get_pvs_to_backup() {
+  local ARGS=$(get_oc_selector)
+  oc get pvc --no-headers $ARGS -o custom-columns=ns:metadata.namespace,name:metadata.name,volume:spec.volumeName
+}
+
+function create_symlink() {
+  local namespace=$1
+  local name=$2
+  local volume=$3
+
+  local link="${BACKUP_TARGET}/claims/${namespace}/$name"
+
+  if [[ ! -e "$link" ]]; then 
+    mkdir -p ${BACKUP_TARGET}/claims/$namespace/
+    ln -sT ${BACKUP_TARGET}/volumes/$volume ${link}
+  fi
+}
+
+main

@@ -1,0 +1,64 @@
+#!/bin/bash
+source "$(dirname $0)/common.sh"
+
+BACKUP_VOLUME_TYPE=${BACKUP_VOLUME_TYPE-kubernetes.io~cinder}
+
+function backup_volumes() {
+  local pvs_to_backup=$(get_pvs_to_backup)
+
+  for node in $(get_nodes); do
+    backup_node "${node}" "${pvs_to_backup}"
+  done
+
+  log "--- Scanning /export for PVs to backup ---"
+  local pv_paths=$(find /export -mindepth 1 -maxdepth 1 -type d)
+  rsync_paths "${pv_paths}" "${pvs_to_backup}"
+}
+
+function get_pvs_to_backup() {
+  local ARGS=$(get_oc_selector)
+  oc get pvc --no-headers $ARGS -o custom-columns=volume:.spec.volumeName
+}
+
+function get_nodes() {
+  oc get nodes --no-headers -o custom-columns=name:.metadata.name
+}
+
+function backup_node() {
+  local node="$1"
+  local pvs_to_backup="$2"
+  
+  log "--- Scanning Node ${node} for PVs to backup ---"
+  local pv_paths=$(get_pv_paths_for_node "${node}")
+
+  rsync_paths "$pv_paths" "$pvs_to_backup"
+}
+
+function rsync_paths() {
+  local pv_paths="$1"
+  local pvs_to_backup="$2"
+
+  shopt -s nullglob
+  for pv_path in ${pv_paths}; do 
+    pv=$(basename "${pv_path}")
+    if grep -q "${pv}" <<< "${pvs_to_backup}"; then
+      log "Start backup of ${pv}"
+      rsync "${BACKUP_RSYNC_OPTS[@]}" "${pv_path}" "${BACKUP_TARGET}/volumes"
+      log "Finished backup of ${pv} with exit code: $?"
+    #else
+    #  log "Ignoring ${pv}"
+    fi
+  done
+  shopt -u nullglob
+
+}
+
+function get_pv_paths_for_node() {
+  local node=$1
+
+  ssh "${BACKUP_REMOTE_USER}@${node}" \
+    "sudo find /var/lib/origin/openshift.local.volumes/pods -mindepth 4 -maxdepth 4 -path '*/volumes/${BACKUP_VOLUME_TYPE}/*'" | \
+    xargs -r -n1 printf "${BACKUP_REMOTE_USER}@${node}:%s\n"
+}
+
+backup_volumes

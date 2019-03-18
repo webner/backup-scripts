@@ -1,0 +1,12 @@
+#!/bin/bash
+source "$(dirname $0)/common.sh"
+
+ssh $BACKUP_REMOTE_USER@master01 -- "sudo ETCDCTL_API=3 etcdctl \
+    --cert /etc/etcd/peer.crt \
+    --key /etc/etcd/peer.key \
+    --cacert /etc/etcd/ca.crt \
+    --endpoints https://192.168.199.21:2379,https://192.168.199.22:2379,https://192.168.199.23:2379 \
+    snapshot save /var/lib/etcd/snapshot.db"
+
+mkdir -p $BACKUP_TARGET/etcd
+rsync "${BACKUP_RSYNC_OPTS[@]}" "$BACKUP_REMOTE_USER@master01:/var/lib/etcd/snapshot.db" "${BACKUP_TARGET}/etcd"

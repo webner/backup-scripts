@@ -1,0 +1,28 @@
+#!/bin/bash
+source "$(dirname $0)/common.sh"
+
+function main() {
+  for node in $(get_nodes); do
+    backup_node "$node"
+  done
+}
+
+function backup_node() {
+  local node=$1
+
+  BACKUPLOCATION="${BACKUP_TARGET}/nodes/$node"
+
+  mkdir -p $BACKUPLOCATION
+
+  echo "Start backup of $node"
+  mkdir -p "${BACKUPLOCATION}/etc/"{origin,cni,systemd,pki,cloud,dnsmasq.d,NetworkManager} 
+  rsync "${BACKUP_RSYNC_OPTS[@]}" "$BACKUP_REMOTE_USER@$node:/etc/"{origin,cni,systemd,pki,cloud,dnsmasq.d,hosts,NetworkManager} "${BACKUPLOCATION}/etc"
+  echo "Finished backup of $node: with exit code $?"
+  echo ""
+
+  echo "Creating a list of rpms installed in ${BACKUPLOCATION}"
+  ssh $BACKUP_REMOTE_USER@$node sudo rpm -qa | sort > ${BACKUPLOCATION}/packages.txt
+  echo ""
+}
+
+main

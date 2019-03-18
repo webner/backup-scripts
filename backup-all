@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [[ "$1" == "" ]]; then
+  ./backup-etcd
+  ./backup-nodes
+  ./backup-projects
+fi 
+
+./backup-jobs $1
+./backup-volumes $1
+./create-claim-links $1

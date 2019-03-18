@@ -1,0 +1,36 @@
+#!/bin/bash
+source "$(dirname $0)/common.sh"
+
+JOB_DIR=$(mktemp --tmpdir -d backup-jobs.XXXXXXXX)
+
+function main() {
+  local job_templates=$(get_job_templates)
+
+  shopt -s nullglob
+
+  IFS=$'\n'
+  for template in ${job_templates}; do
+    IFS=$' '
+    run_job $template 
+  done
+  
+  shopt -u nullglob
+}
+
+function get_job_templates() {
+  local ARGS=$(get_oc_selector)
+  oc get template $ARGS --no-headers -o custom-columns=ns:.metadata.namespace,name:.metadata.name
+}
+
+function run_job() {
+  local namespace=$1
+  local template=$2
+  local jobfile="$JOB_DIR/$template.yaml"
+  
+  log "--- Starting backup job from template $2 in namespace $1 ---"
+  oc -n $namespace process $template -o yaml > $jobfile
+  oc -n $namespace create -f $jobfile
+  oc -n $namespace wait --for condition=Complete -f $jobfile
+}
+
+main
