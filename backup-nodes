@@ -16,7 +16,7 @@ function backup_node() {
 
   echo "Start backup of $node"
   mkdir -p "${BACKUPLOCATION}/etc/"{origin,cni,systemd,pki,cloud,dnsmasq.d,NetworkManager} 
-  rsync "${BACKUP_RSYNC_OPTS[@]}" "$BACKUP_REMOTE_USER@$node:/etc/"{origin,cni,systemd,pki,cloud,dnsmasq.d,hosts,NetworkManager} "${BACKUPLOCATION}/etc"
+  rsync "${BACKUP_RSYNC_OPTS[@]}" "$BACKUP_REMOTE_USER@$node:/etc/"{origin,cni,systemd,pki,cloud,dnsmasq.d,dnsmasq.conf,hosts,NetworkManager} "${BACKUPLOCATION}/etc"
   echo "Finished backup of $node: with exit code $?"
   echo ""
 

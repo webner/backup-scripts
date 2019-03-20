@@ -4,7 +4,7 @@ exec 4>&2
 
 prefix() {
  local line
- while read line; do printf '%s %-6s %s\n' "$(date)" "$1" "$line"; done
+ while read line; do printf '%-6s %s\n' "$1" "$line"; done
 }
 
 stdout=$(mktemp -u)

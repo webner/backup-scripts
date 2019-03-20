@@ -1,11 +1,11 @@
 #!/bin/bash
+dir=$(dirname $0)
 
 if [[ "$1" == "" ]]; then
-  ./backup-etcd
-  ./backup-nodes
-  ./backup-projects
+  $dir/backup-etcd
+  $dir/backup-nodes
 fi 
 
-./backup-jobs $1
-./backup-volumes $1
-./create-claim-links $1
+$dir/backup-jobs $1
+$dir/backup-volumes $1
+$dir/create-claim-links $1
