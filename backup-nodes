@@ -14,14 +14,18 @@ function backup_node() {
 
   mkdir -p $BACKUPLOCATION
 
+  prom_start
   echo "Start backup of $node"
   mkdir -p "${BACKUPLOCATION}/etc/"{origin,cni,systemd,pki,cloud,dnsmasq.d,NetworkManager} 
   rsync "${BACKUP_RSYNC_OPTS[@]}" "$BACKUP_REMOTE_USER@$node:/etc/"{origin,cni,systemd,pki,cloud,dnsmasq.d,dnsmasq.conf,hosts,NetworkManager} "${BACKUPLOCATION}/etc"
-  echo "Finished backup of $node: with exit code $?"
+  prom_end "backup_job" "name=\"configfiles_$node\",type=\"script\""
+  echo "Finished backup of $node with exit code $?"
   echo ""
 
+  prom_start
   echo "Creating a list of rpms installed in ${BACKUPLOCATION}"
   ssh $BACKUP_REMOTE_USER@$node sudo rpm -qa | sort > ${BACKUPLOCATION}/packages.txt
+  prom_end "backup_job" "name=\"packagelist_$node\",type=\"script\""
   echo ""
 }
 

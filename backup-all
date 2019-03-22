@@ -9,3 +9,4 @@ fi
 $dir/backup-jobs $1
 $dir/backup-volumes $1
 $dir/create-claim-links $1
+$dir/backup-metrics

@@ -42,11 +42,11 @@ function rsync_paths() {
   for pv_path in ${pv_paths}; do 
     pv=$(basename "${pv_path}")
     if grep -q "${pv}" <<< "${pvs_to_backup}"; then
+      prom_start
       log "Start backup of ${pv}"
       rsync "${BACKUP_RSYNC_OPTS[@]}" "${pv_path}" "${BACKUP_TARGET}/volumes"
+      prom_end "backup_pv" "name=\"$pv\""
       log "Finished backup of ${pv} with exit code: $?"
-    #else
-    #  log "Ignoring ${pv}"
     fi
   done
   shopt -u nullglob

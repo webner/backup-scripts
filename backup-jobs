@@ -26,11 +26,13 @@ function run_job() {
   local namespace=$1
   local template=$2
   local jobfile="$JOB_DIR/$template.yaml"
-  
+
+  prom_start
   log "--- Starting backup job from template $2 in namespace $1 ---"
   oc -n $namespace process $template -o yaml > $jobfile
   oc -n $namespace create -f $jobfile
   oc -n $namespace wait --for condition=Complete --timeout=3600s -f $jobfile
+  prom_end "backup_job" "namespace=\"$namespace\",name=\"$template\",type=\"template\""
 }
 
 main

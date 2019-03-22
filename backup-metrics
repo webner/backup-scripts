@@ -1,0 +1,13 @@
+#!/bin/bash
+source "$(dirname $0)/common.sh"
+
+oc get pvc --all-namespaces --no-headers -L catalysts.cc/backup | awk '{print "backup_pvc_backup_label_defined{namespace=\""$1"\",name=\""$2"\"} ", $9!="" }' > ${BACKUP_TARGET}/metrics/backup_pvc_backup_label_defined.prom.temp
+
+(cd /backup/volumes; du -s * | awk '{print "backup_pv_size{name=\""$2"\",path=\"/backup/volumes/"$2"\"}", $1 }' > ${BACKUP_TARGET}/metrics/backup_pv_size.prom.temp)
+(cd /backup/nodes; du -s * | awk '{print "backup_node_size{node=\""$2"\",path=\"/backup/volumes/"$2"\"}", $1 }' > ${BACKUP_TARGET}/metrics/backup_node_size.prom.temp)
+
+chmod +r ${BACKUP_TARGET}/metrics/*.prom.temp
+
+mv ${BACKUP_TARGET}/metrics/backup_pvc_backup_label_defined.prom{.temp,}
+mv ${BACKUP_TARGET}/metrics/backup_pv_size.prom{.temp,}
+mv ${BACKUP_TARGET}/metrics/backup_node_size.prom{.temp,}
