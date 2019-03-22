@@ -59,6 +59,7 @@ function prom_end() {
   end=$(date +%s%03N)
   runtime=$((end-PROM_START_TIME))
 
+  mkdir -p ${BACKUP_TARGET}/metrics
   _update_begin ${BACKUP_TARGET}/metrics/${PROM_NAME}.prom
   _update_value "${PROM_NAME}_exitcode{$PROM_LABELS}" "$exitcode"
   _update_value "${PROM_NAME}_runtime_ms{$PROM_LABELS}" "$runtime"
